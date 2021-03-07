@@ -1,2 +1,2 @@
-# MIR-api
+# MIR-mobile-application
 MIR Mobile Application
