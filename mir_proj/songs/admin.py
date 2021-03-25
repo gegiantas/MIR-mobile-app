@@ -2,9 +2,11 @@ from django.contrib import admin
 
 from .models import Song
 
+@admin.register(Song)
 class SongAdmin(admin.ModelAdmin):
-  list = ('name', 'album', 'artist','released_date','energy_low,energy_med','energy_high','valence_low','valence_med','valence_high','danceability_low','danceability_med','danceability_high')
+  list_filter = ('title', 'album', 'artist','released_date')
+  list_display = ('title', 'album', 'artist','released_date')
 
-admin.site.register(Song, SongAdmin)
+#admin.site.register(Song, SongAdmin)
 
 # Register your models here.
