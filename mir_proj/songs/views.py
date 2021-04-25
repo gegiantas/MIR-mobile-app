@@ -1,7 +1,7 @@
 from django.shortcuts import render,HttpResponse
 from django.http import JsonResponse
 from rest_framework.parsers import JSONParser
-from rest_framework.parsers import FileUploadParser
+from rest_framework.parsers import MultiPartParser
 from rest_framework.decorators import api_view
 from rest_framework.decorators import APIView
 from rest_framework.response import Response
@@ -16,6 +16,13 @@ from django.core.files.storage import default_storage
 from .serializers import SongSerializer,SegmentSerializer
 from rest_framework import viewsets
 from .models import Song, Segment
+from deep_audio_features.bin.audio_process import process_wave_file
+from deep_audio_features.bin.deep_retrieval_query  import search_deep_database
+import json  
+
+import os.path,sys
+sys.path.insert(0, os.path.join(os.path.dirname(
+os.path.realpath(__file__)), "../"))
 
 
 
@@ -24,7 +31,7 @@ class SongViewSet(viewsets.ModelViewSet):
      queryset = Song.objects.all()
 
 class FileUploadView(APIView):
-    parser_classes = [FileUploadParser,]
+    parser_classes = [MultiPartParser,]
 
     def post(self, request, format=None):
 
@@ -32,13 +39,22 @@ class FileUploadView(APIView):
           print(request.data)
           if file_obj:
                filename = str(file_obj)
-
+               audio = 'audio/' + filename
+               print(audio)
                with default_storage.open('audio/' + filename, 'wb+') as destination:
-               
+                    print(destination)
                     for chunk in file_obj.chunks():
                          destination.write(chunk)
                
-               return Response({"message":"File is received"},status=200)
+               db = '/home/george/Documents/Thesis/MIR-mobile-app/mir_proj/deep_audio_features/db'
+               segment_output = '/home/george/Documents/Thesis/MIR-mobile-app/mir_proj/audio/wav/'
+             
+               new_path = process_wave_file(audio,segment_output)
+               song_list  = search_deep_database(db,new_path)
+
+               ret = json.dumps(song_list)
+               
+               return Response(song_list,status=200)
           else:
                return Response({"message":"File is missing"},status=200)
 
